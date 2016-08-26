@@ -1,28 +1,35 @@
 //
-//  ETHAES128.m
-//  CocoapodsTest
+//  AES123Encrypt.m
+//  imToken
 //
-//  Created by 刘鸿博 on 16/8/17.
+//  Created by 刘鸿博 on 16/8/25.
 //  Copyright © 2016年 刘鸿博. All rights reserved.
 //
 
-#import "ETHAES128.h"
-
-@implementation ETHAES128
-+ (NSMutableData*) encryptString: (NSString*) stringToEncrypt withKey: (NSString*) keyString
+#import "AES128Encrypt.h"
+#import <CommonCrypto/CommonCryptor.h>
+#import <CommonCrypto/CommonKeyDerivation.h>
+#import <Security/Security.h>
+#import "NSString+SHA3.h"
+#import <BTCData.h>
+@implementation AES128Encrypt
++ (NSMutableData*) encryptString: (NSString*)stringToEncrypt withKey: (NSString*) keyString iv:(NSData *)iv
 {
     //Key to Data
-    NSData *key = [keyString dataUsingEncoding:NSUTF8StringEncoding];
+    NSData *key = [keyString dataFromHexString];
+    
     //String to encrypt to Data
-    NSData *data = [stringToEncrypt dataUsingEncoding:NSUTF8StringEncoding];
+    NSData *data = [stringToEncrypt dataFromHexString];
+    
     // Init cryptor
     CCCryptorRef cryptor = NULL;
+    
     // Alloc Data Out
     NSMutableData *cipherData = [NSMutableData dataWithLength:data.length + kCCBlockSizeAES128];
+    
     //Empty IV: initialization vector
-    NSData *iv;
-    iv = [self randomDataOfLength:kCCBlockSizeAES128];
-    NSLog(@"%@", [[NSString alloc] initWithData:iv encoding:NSUTF8StringEncoding]);
+    //NSMutableData *iv =  [NSMutableData dataWithLength:kCCBlockSizeAES128];
+    //iv = [self randomDataOfLength:kCCBlockSizeAES128];
     //Create Cryptor
     CCCryptorStatus  create = CCCryptorCreateWithMode(kCCEncrypt,
                                                       kCCModeCTR,
@@ -41,7 +48,6 @@
     {
         //alloc number of bytes written to data Out
         size_t outLength;
-        
         //Update Cryptor
         CCCryptorStatus  update = CCCryptorUpdate(cryptor,
                                                   data.bytes,
@@ -67,39 +73,34 @@
                 CCCryptorRelease(cryptor ); //CCCryptorRef cryptorRef
             }
             return cipherData;
+            
         }
+        
+        
+        
     }
     else
     {
         //error
         
     }
+    
     return nil;
 }
-+ (NSData *)randomDataOfLength:(size_t)length {
-    NSMutableData *data = [NSMutableData dataWithLength:length];
-    
-    int result = SecRandomCopyBytes(kSecRandomDefault,
-                                    length,
-                                    data.mutableBytes);
-    NSAssert(result == 0, @"Unable to generate random bytes: %d",
-             errno);
-    
-    return data;
-}
 
 
 
-+ (NSString*) decryptData: (NSData*) data withKey: (NSString*) keyString
++ (NSString*) decryptData: (NSData*) data withKey: (NSString*) keyString iv:(NSData *)iv
 {
+    
     //Key to Data
-    NSData *key = [keyString dataUsingEncoding:NSUTF8StringEncoding];
+    NSData *key = [keyString dataFromHexString];
     
     // Init cryptor
     CCCryptorRef cryptor = NULL;
     
     //Empty IV: initialization vector
-    NSMutableData *iv =  [NSMutableData dataWithLength:kCCBlockSizeAES128];
+    //NSMutableData *iv =  [NSMutableData dataWithLength:kCCBlockSizeAES128];
     
     // Create Cryptor
     CCCryptorStatus createDecrypt = CCCryptorCreateWithMode(kCCDecrypt, // operation
@@ -138,7 +139,7 @@
             cipherDataDecrypt.length = outLengthDecrypt;
             
             // Data to String
-            NSString* cipherFinalDecrypt = [[NSString alloc] initWithData:cipherDataDecrypt encoding:NSUTF8StringEncoding];
+           NSString *cipherFinalDecrypt =BTCHexFromData(cipherDataDecrypt);
             
             //Final Cryptor
             CCCryptorStatus final = CCCryptorFinal(cryptor, //CCCryptorRef cryptorRef,
@@ -148,20 +149,29 @@
             
             if (final == kCCSuccess)
             {
-                //Release Cryptor
-                //CCCryptorStatus release =
+              
                 CCCryptorRelease(cryptor); //CCCryptorRef cryptorRef
             }
-            
-            return cipherFinalDecrypt;
+                return cipherFinalDecrypt;
         }
     }
     else
     {
-        //error
         
     }
-    
     return nil;
+  
+}
+
++ (NSData *)randomDataOfLength:(size_t)length {
+    NSMutableData *data = [NSMutableData dataWithLength:length];
+    
+    int result = SecRandomCopyBytes(kSecRandomDefault,
+                                    length,
+                                    data.mutableBytes);
+    NSAssert(result == 0, @"Unable to generate random bytes: %d",
+             errno);
+    
+    return data;
 }
 @end

@@ -66,7 +66,6 @@
         wholeByte = strtoul(byteChars, NULL, 16);
         [data appendBytes:&wholeByte length:1];
     }
-    
     return data;
 }
 @end
@@ -76,7 +75,7 @@
 - (NSString *)newSha3:(NSUInteger)bitsLength {
     int bytes = (int)(bitsLength/8);
     
-    NSString *string = [BTCHexFromData(self) substringFromIndex:2];
+    NSString *string = BTCHexFromData(self);
 
     NSData *data  = [string dataFromHexString];
     int size = (int )[data length];

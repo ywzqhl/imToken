@@ -23,4 +23,6 @@
    encHdPathPriv(Dic): //encStr: iv:
  */
 - (instancetype)initWithPassword:(NSString *)password mnemonic:(NSString *)mnemonic path:(NSString *)path;
+- (instancetype)initWithWalletId:(NSString *)walletId address:(NSString *)address password:(NSString *)password;
+- (NSString *)ksJsonFile;
 @end

@@ -47,6 +47,7 @@ RCT_EXPORT_METHOD(PWPassword:(NSString *)pwpassword privatekey:(NSString *)priva
 /**
  * 导出为V3
  exportV3(walletId, address, password) return ksJson {
+ 
 	if V3 {
 	} else if HD {   ??????
 	}
@@ -54,7 +55,17 @@ RCT_EXPORT_METHOD(PWPassword:(NSString *)pwpassword privatekey:(NSString *)priva
  */
 RCT_EXPORT_METHOD(V3WalletID:(NSString *)v3WalletID address:(NSString *)address password:(NSString *)password resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject) {
-    V3Keystore *v3keystore = [[V3Keystore alloc] initWithWalletId:v3WalletID address:address password:password];
+    if ([v3WalletID hasPrefix:@"V3"]) {
+        V3Keystore *v3keystore = [[V3Keystore alloc] initWithWalletId:v3WalletID address:address password:password];
+        
+        resolve(@{@"ksJson":[v3keystore ksJsonFile]});
+    } else if ([v3WalletID hasPrefix:@"HD"] ){
+        HDKeystore *hdkeystore = [[HDKeystore alloc] initWithWalletId:v3WalletID address:address password:password];
+        resolve(@{@"keJson":[hdkeystore ksJsonFile]});
+    } else {
+    
+    }
+    
     
     
 }
